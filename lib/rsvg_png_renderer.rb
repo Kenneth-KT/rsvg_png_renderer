@@ -39,18 +39,27 @@ class RsvgPngRenderer
     def svg_localize_external_images(svg_string)
       external_images_selector = [
         %{image[href^="http://"]},
-        %{image[href^="https://"]}
+        %{image[href^="https://"]},
+        %{image[xlink|href^="http://"]},
+        %{image[xlink|href^="https://"]}
       ].join(', ')
 
       tmpdir = ::Dir.mktmpdir
 
       svg = ::Nokogiri::XML(svg_string)
       external_image_tags = svg.css(external_images_selector)
-      image_urls = external_image_tags.map { |t| t.attributes['href'] }
+      image_urls = external_image_tags.map do |t|
+        t.attributes['href']&.value || t.attributes['xlink:href']&.value
+      end
       image_files = streaming_download_files_concurrently(image_urls, basedir: tmpdir)
 
       external_image_tags.zip(image_files).each do |image_tag, image_file|
-        image_tag.attributes['href'].value = image_file.path
+        href = if image_tag.attributes['xlink:href']&.value
+                 image_tag.attributes['xlink:href']
+               else
+                 image_tag.attributes['href']
+               end
+        href.value = image_file.path
       end
 
       image_localized_svg_string = svg.to_s
