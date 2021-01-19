@@ -10,14 +10,15 @@ Gem::Specification.new do |s|
   s.homepage    =
     'https://github.com/Kenneth-KT/rsvg_png_renderer'
   s.license       = 'MIT'
-  s.add_runtime_dependency 'em-http-request'
-  s.add_runtime_dependency 'eventmachine'
   s.add_runtime_dependency 'nokogiri'
+  s.add_runtime_dependency 'typhoeus'
   s.post_install_message = <<-END
 Notice that `rsvg_png_renderer` gem requires the executable
 `rsvg-convert` to be present in your system, the packge is
 usually named `librsvg` depending on your operating system 
 or distribution.
 Visit https://wiki.gnome.org/Projects/LibRsvg to learn more.
+
+Also, the gem uses `typhoeus` which requires `libcurl`.
 END
 end

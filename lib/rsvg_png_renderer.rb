@@ -1,7 +1,6 @@
-require 'em-http'
-require 'eventmachine'
 require 'fileutils'
 require 'nokogiri'
+require 'typhoeus'
 
 class RsvgPngRenderer
   class << self
@@ -17,22 +16,16 @@ class RsvgPngRenderer
     private
 
     def streaming_download_files_concurrently(urls, basedir:)
-      files = []
-      return files if urls.empty?
-
-      ::EventMachine.run do
-        multi = ::EventMachine::MultiRequest.new
-
-        urls.each.with_index do |url, index|
-          request = ::EventMachine::HttpRequest.new(url).get
-          file = ::Tempfile.create(['download-', ''], basedir, binmode: true)
-          request.stream { |chunk| file.write(chunk) }
-          request.callback { file.close }
-          files << file
-          multi.add index, request
-          multi.callback { ::EventMachine.stop }
-        end
+      hydra = Typhoeus::Hydra.new
+      files = urls.map do |url|
+        file = ::Tempfile.create(['download-', ''], basedir, binmode: true)
+        request = Typhoeus::Request.new(url)
+        request.on_body { |chunk| file.write(chunk) }
+        request.on_complete { file.close }
+        hydra.queue(request)
+        file
       end
+      hydra.run
       files
     end
 
