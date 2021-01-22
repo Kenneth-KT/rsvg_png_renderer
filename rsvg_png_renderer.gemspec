@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'rsvg_png_renderer'
-  s.version     = '1.0.0'
+  s.version     = '1.1.0'
   s.date        = '2021-01-11'
   s.summary     = "RSVG to PNG renderer"
   s.description = "Render SVG to PNG with external images using RSVG"
