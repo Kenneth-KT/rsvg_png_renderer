@@ -4,11 +4,12 @@ require 'typhoeus'
 
 class RsvgPngRenderer
   class << self
-    def render_svg_to_png(svg_string: nil, svg_file: nil)
+    def render_svg_to_png(svg_string: nil, svg_file: nil, rsvg_convert_path: nil)
+      rsvg_convert_path ||= ENV['RSVG_CONVERT_PATH'] || 'rsvg-convert'
       svg_string ||= ::File.read(svg_file)
       svg_file = svg_localize_external_images(svg_string)
       output_file = Tempfile.create(['svg-render-', '.png']).tap { |f| f.close }
-      system('rsvg-convert', svg_file.path, '-o', output_file.path)
+      system(rsvg_convert_path, svg_file.path, '-o', output_file.path)
       ::FileUtils.rm_rf(::File.dirname(svg_file.path))
       output_file
     end
