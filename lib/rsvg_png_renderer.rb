@@ -9,9 +9,16 @@ class RsvgPngRenderer
       svg_string ||= ::File.read(svg_file)
       svg_file = svg_localize_external_images(svg_string)
       output_file = Tempfile.create(['svg-render-', '.png']).tap { |f| f.close }
-      system(rsvg_convert_path, svg_file.path, '-o', output_file.path)
-      ::FileUtils.rm_rf(::File.dirname(svg_file.path))
+      unless system(rsvg_convert_path, svg_file.path, '-o', output_file.path)
+        raise RuntimeError, "Executing #{rsvg_convert_path} returned a non-zero exit code #{$?.exitstatus}"
+      end
+
       output_file
+    ensure
+      begin
+        ::FileUtils.rm_rf(::File.dirname(svg_file.path))
+      rescue
+      end
     end
 
     private
